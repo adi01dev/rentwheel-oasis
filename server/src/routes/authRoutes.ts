@@ -1,8 +1,8 @@
-
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db from '../db';
+import { UserPayload } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role } as UserPayload,
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '7d' }
     );
@@ -87,7 +87,7 @@ router.post('/login', async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role } as UserPayload,
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '7d' }
     );

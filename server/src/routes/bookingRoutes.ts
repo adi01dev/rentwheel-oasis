@@ -1,15 +1,14 @@
-
 import express from 'express';
 import db from '../db';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
 // Create a new booking
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const { carId, startDate, endDate, totalPrice } = req.body;
-    const userId = req.user.id;
+    const userId = req.user!.id;
 
     // Check if car exists and is available
     const carCheck = await db.query(
@@ -63,12 +62,12 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Get bookings for a user
-router.get('/user/:userId', authenticateToken, async (req, res) => {
+router.get('/user/:userId', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const { userId } = req.params;
 
     // Check if user is requesting their own bookings
-    if (parseInt(userId) !== req.user.id) {
+    if (parseInt(userId) !== req.user!.id) {
       return res.status(403).json({ error: 'Not authorized' });
     }
 
@@ -104,7 +103,7 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
 });
 
 // Get bookings for a car
-router.get('/car/:carId', authenticateToken, async (req, res) => {
+router.get('/car/:carId', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const { carId } = req.params;
     
@@ -118,7 +117,7 @@ router.get('/car/:carId', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Car not found' });
     }
     
-    if (carCheck.rows[0].host_id !== req.user.id) {
+    if (carCheck.rows[0].host_id !== req.user!.id) {
       return res.status(403).json({ error: 'Not authorized' });
     }
 
@@ -153,7 +152,7 @@ router.get('/car/:carId', authenticateToken, async (req, res) => {
 });
 
 // Update booking status
-router.patch('/:id', authenticateToken, async (req, res) => {
+router.patch('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -178,13 +177,13 @@ router.patch('/:id', authenticateToken, async (req, res) => {
     const booking = bookingCheck.rows[0];
     
     // Check if user is authorized (user who made booking or host of the car)
-    if (booking.user_id !== req.user.id && booking.host_id !== req.user.id) {
+    if (booking.user_id !== req.user!.id && booking.host_id !== req.user!.id) {
       return res.status(403).json({ error: 'Not authorized' });
     }
     
     // Users can only cancel their own bookings
     // Hosts can confirm, complete, or cancel bookings
-    if (req.user.id === booking.user_id && status !== 'cancelled') {
+    if (req.user!.id === booking.user_id && status !== 'cancelled') {
       return res.status(403).json({ error: 'Users can only cancel bookings' });
     }
     

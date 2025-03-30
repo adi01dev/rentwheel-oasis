@@ -1,7 +1,6 @@
-
 import express from 'express';
 import db from '../db';
-import { authenticateToken, checkRole } from '../middleware/auth';
+import { authenticateToken, checkRole, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -126,7 +125,7 @@ router.get('/search', async (req, res) => {
 });
 
 // Get cars by host ID
-router.get('/host/:hostId', authenticateToken, async (req, res) => {
+router.get('/host/:hostId', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const { hostId } = req.params;
     
@@ -163,7 +162,7 @@ router.get('/host/:hostId', authenticateToken, async (req, res) => {
 });
 
 // Add a new car
-router.post('/', authenticateToken, checkRole('host'), async (req, res) => {
+router.post('/', authenticateToken, checkRole('host'), async (req: AuthRequest, res) => {
   try {
     const {
       make,
@@ -184,7 +183,7 @@ router.post('/', authenticateToken, checkRole('host'), async (req, res) => {
       VALUES 
         ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
       RETURNING *`,
-      [req.user.id, make, model, year, price, location, description, imageUrl, features]
+      [req.user!.id, make, model, year, price, location, description, imageUrl, features]
     );
     
     const newCar = result.rows[0];
@@ -209,7 +208,7 @@ router.post('/', authenticateToken, checkRole('host'), async (req, res) => {
 });
 
 // Update car
-router.put('/:id', authenticateToken, checkRole('host'), async (req, res) => {
+router.put('/:id', authenticateToken, checkRole('host'), async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const {
@@ -234,7 +233,7 @@ router.put('/:id', authenticateToken, checkRole('host'), async (req, res) => {
       return res.status(404).json({ error: 'Car not found' });
     }
     
-    if (carCheck.rows[0].host_id !== req.user.id) {
+    if (carCheck.rows[0].host_id !== req.user!.id) {
       return res.status(403).json({ error: 'Not authorized' });
     }
     
@@ -244,7 +243,7 @@ router.put('/:id', authenticateToken, checkRole('host'), async (req, res) => {
           description = $6, image_url = $7, features = $8, availability = $9
       WHERE id = $10 AND host_id = $11
       RETURNING *`,
-      [make, model, year, price, location, description, imageUrl, features, availability, id, req.user.id]
+      [make, model, year, price, location, description, imageUrl, features, availability, id, req.user!.id]
     );
     
     if (result.rows.length === 0) {
@@ -273,7 +272,7 @@ router.put('/:id', authenticateToken, checkRole('host'), async (req, res) => {
 });
 
 // Delete car
-router.delete('/:id', authenticateToken, checkRole('host'), async (req, res) => {
+router.delete('/:id', authenticateToken, checkRole('host'), async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     
@@ -287,13 +286,13 @@ router.delete('/:id', authenticateToken, checkRole('host'), async (req, res) => 
       return res.status(404).json({ error: 'Car not found' });
     }
     
-    if (carCheck.rows[0].host_id !== req.user.id) {
+    if (carCheck.rows[0].host_id !== req.user!.id) {
       return res.status(403).json({ error: 'Not authorized' });
     }
     
     await db.query(
       'DELETE FROM cars WHERE id = $1 AND host_id = $2',
-      [id, req.user.id]
+      [id, req.user!.id]
     );
     
     res.json({ message: 'Car deleted successfully' });
