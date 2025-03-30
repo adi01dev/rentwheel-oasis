@@ -14,7 +14,152 @@ export interface Car {
   availability: boolean;
 }
 
-// Mock data
+export interface Booking {
+  id: string;
+  userId: string;
+  carId: string;
+  startDate: string;
+  endDate: string;
+  totalPrice: number;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+}
+
+// API base URL - replace with your actual backend URL when deployed
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+// Service functions
+export const getCars = async (): Promise<Car[]> => {
+  try {
+    const response = await fetch(`${API_URL}/cars`);
+    if (!response.ok) {
+      throw new Error(`Error fetching cars: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching cars:', error);
+    // Fallback to mock data during development
+    return mockCars;
+  }
+};
+
+export const getCarById = async (id: string): Promise<Car | undefined> => {
+  try {
+    const response = await fetch(`${API_URL}/cars/${id}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching car: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching car with id ${id}:`, error);
+    // Fallback to mock data during development
+    return mockCars.find(car => car.id === id);
+  }
+};
+
+export const getCarsByLocation = async (location: string): Promise<Car[]> => {
+  try {
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    
+    const response = await fetch(`${API_URL}/cars/search?${params.toString()}`);
+    if (!response.ok) {
+      throw new Error(`Error searching cars: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching cars by location:', error);
+    // Fallback to mock data during development
+    if (!location) return mockCars;
+    return mockCars.filter(car => 
+      car.location.toLowerCase().includes(location.toLowerCase())
+    );
+  }
+};
+
+export const addCar = async (car: Omit<Car, 'id'>): Promise<Car> => {
+  try {
+    const response = await fetch(`${API_URL}/cars`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(car),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error adding car: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding car:', error);
+    // Fallback during development
+    const newCar: Car = {
+      ...car,
+      id: `car${Math.random().toString(36).substr(2, 9)}`,
+    };
+    mockCars.push(newCar);
+    return newCar;
+  }
+};
+
+export const createBooking = async (booking: Omit<Booking, 'id' | 'status'>): Promise<Booking> => {
+  try {
+    const response = await fetch(`${API_URL}/bookings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(booking),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error creating booking: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    // Fallback during development
+    const newBooking: Booking = {
+      ...booking,
+      id: `booking${Math.random().toString(36).substr(2, 9)}`,
+      status: 'confirmed',
+    };
+    mockBookings.push(newBooking);
+    return newBooking;
+  }
+};
+
+export const getUserBookings = async (userId: string): Promise<Booking[]> => {
+  try {
+    const response = await fetch(`${API_URL}/bookings/user/${userId}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching user bookings: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching bookings for user ${userId}:`, error);
+    // Fallback during development
+    return mockBookings.filter(booking => booking.userId === userId);
+  }
+};
+
+export const getHostCars = async (hostId: string): Promise<Car[]> => {
+  try {
+    const response = await fetch(`${API_URL}/cars/host/${hostId}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching host cars: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching cars for host ${hostId}:`, error);
+    // Fallback during development
+    return mockCars.filter(car => car.hostId === hostId);
+  }
+};
+
+// Mock data for development and fallback
 const mockCars: Car[] = [
   {
     id: "car1",
@@ -83,71 +228,4 @@ const mockCars: Car[] = [
   },
 ];
 
-// Service functions
-export const getCars = async (): Promise<Car[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return mockCars;
-};
-
-export const getCarById = async (id: string): Promise<Car | undefined> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return mockCars.find(car => car.id === id);
-};
-
-export const getCarsByLocation = async (location: string): Promise<Car[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  if (!location) return mockCars;
-  return mockCars.filter(car => 
-    car.location.toLowerCase().includes(location.toLowerCase())
-  );
-};
-
-export const addCar = async (car: Omit<Car, 'id'>): Promise<Car> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  const newCar: Car = {
-    ...car,
-    id: `car${Math.random().toString(36).substr(2, 9)}`,
-  };
-  mockCars.push(newCar);
-  return newCar;
-};
-
-export interface Booking {
-  id: string;
-  userId: string;
-  carId: string;
-  startDate: string;
-  endDate: string;
-  totalPrice: number;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-}
-
 const mockBookings: Booking[] = [];
-
-export const createBooking = async (booking: Omit<Booking, 'id' | 'status'>): Promise<Booking> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  const newBooking: Booking = {
-    ...booking,
-    id: `booking${Math.random().toString(36).substr(2, 9)}`,
-    status: 'confirmed',
-  };
-  mockBookings.push(newBooking);
-  return newBooking;
-};
-
-export const getUserBookings = async (userId: string): Promise<Booking[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return mockBookings.filter(booking => booking.userId === userId);
-};
-
-export const getHostCars = async (hostId: string): Promise<Car[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return mockCars.filter(car => car.hostId === hostId);
-};
