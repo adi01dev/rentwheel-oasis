@@ -5,9 +5,10 @@ import HeroSection from '@/components/HeroSection';
 import SearchBar from '@/components/SearchBar';
 import CarCard from '@/components/CarCard';
 import { Button } from '@/components/ui/button';
-import { Car, getCars } from '@/services/carService';
+import { getCars } from '@/services/carService';
 import { useEffect, useState } from 'react';
-import { Check, Shield, Star, Clock } from 'lucide-react';
+import { Check, Shield, Star, Clock, Search, Calendar as CalendarIcon, Car as CarIcon } from 'lucide-react';
+import type { Car } from '@/services/carService';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -83,7 +84,7 @@ const Index = () => {
               
               <div className="text-center p-6">
                 <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="h-8 w-8 text-primary" />
+                  <CalendarIcon className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Book Your Dates</h3>
                 <p className="text-gray-600">Select your pickup and return dates, then book instantly with our secure platform.</p>
@@ -91,7 +92,7 @@ const Index = () => {
               
               <div className="text-center p-6">
                 <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Car className="h-8 w-8 text-primary" />
+                  <CarIcon className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Enjoy Your Ride</h3>
                 <p className="text-gray-600">Pick up your car and enjoy your journey with 24/7 customer support along the way.</p>
